@@ -1,6 +1,5 @@
 import { buildDiff, intersectGrants } from "./intersect.js";
-import type { TokenStore } from "./store.js";
-import { isEpochTokenStore } from "./store-epoch.js";
+import { isEpochTokenStore, type TokenStore } from "./store/index.js";
 import { newJti, signToken, verifyToken } from "./token.js";
 import type { IssueRequest, IssueResult, TokenClaims } from "./types.js";
 

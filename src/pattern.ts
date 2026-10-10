@@ -1,8 +1,10 @@
 import { decideFromClaims } from "./decide.js";
 import { issueChild } from "./issue.js";
-import type { TokenStore } from "./store.js";
-import { isEpochTokenStore } from "./store-epoch.js";
-import { MemoryTokenStore } from "./store-memory.js";
+import {
+  isEpochTokenStore,
+  MemoryTokenStore,
+  type TokenStore,
+} from "./store/index.js";
 import { newJti, signToken, verifyToken } from "./token.js";
 import type {
   Decision,

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createPattern } from "../pattern.js";
-import { patternMiddleware } from "./middleware.js";
+import { patternMiddleware } from "../hono/middleware.js";
 
 describe("hono middleware", () => {
   it("allows granted route and denies others", async () => {

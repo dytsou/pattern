@@ -9,8 +9,14 @@ export { matchPath, normalizePath } from "./path.js";
 export { intersectGrants, grantCoveredBy, buildDiff } from "./intersect.js";
 export { signToken, verifyToken, newJti } from "./token.js";
 export { issueChild } from "./issue.js";
-export type { TokenStore, TokenRecord, TokenStoreStats } from "./store.js";
-export { MemoryTokenStore } from "./store-memory.js";
-export { D1TokenStore, type D1Like } from "./store-d1.js";
-export { EpochTokenStore, isEpochTokenStore } from "./store-epoch.js";
+export {
+  MemoryTokenStore,
+  D1TokenStore,
+  EpochTokenStore,
+  isEpochTokenStore,
+  type TokenStore,
+  type TokenRecord,
+  type TokenStoreStats,
+  type D1Like,
+} from "./store/index.js";
 export type * from "./types.js";

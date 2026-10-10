@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createPattern } from "./pattern.js";
-import { EpochTokenStore } from "./store-epoch.js";
+import { createPattern } from "../pattern.js";
+import { EpochTokenStore } from "../store/index.js";
 
 describe("EpochTokenStore", () => {
   it("bump on revoke invalidates all prior tokens", async () => {

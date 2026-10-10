@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { decideFromClaims } from "./decide.js";
-import { signToken, verifyToken } from "./token.js";
-import type { TokenClaims } from "./types.js";
+import { decideFromClaims } from "../decide.js";
+import { signToken, verifyToken } from "../token.js";
+import type { TokenClaims } from "../types.js";
 
 const secret = "test-secret";
 

@@ -1,4 +1,4 @@
-import type { TokenRecord, TokenStore, TokenStoreStats } from "./store.js";
+import type { TokenRecord, TokenStore, TokenStoreStats } from "./types.js";
 
 export class MemoryTokenStore implements TokenStore {
   private readonly rows = new Map<string, TokenRecord>();

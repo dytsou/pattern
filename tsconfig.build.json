@@ -9,5 +9,5 @@
     "types": ["@cloudflare/workers-types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/**/*.test.ts"]
+  "exclude": ["src/tests/**", "src/**/*.test.ts"]
 }

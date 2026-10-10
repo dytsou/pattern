@@ -4,7 +4,7 @@ import {
   propDenyByDefault,
   propNoEscalation,
   propRevokePropagates,
-} from "./properties.js";
+} from "../properties.js";
 
 describe("properties", () => {
   it("prop_denyByDefault: empty grants never allow", () => {

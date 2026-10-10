@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createPattern } from "../pattern.js";
-import { createIntrospectHandler } from "./introspect.js";
+import { createIntrospectHandler } from "../hono/introspect.js";
 
 describe("introspect", () => {
   it("explains deny reason for subject token when caller is delegation", async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { decideFromClaims, grantsAllow } from "./decide.js";
-import { matchPath } from "./path.js";
-import type { TokenClaims } from "./types.js";
+import { decideFromClaims, grantsAllow } from "../decide.js";
+import { matchPath } from "../path.js";
+import type { TokenClaims } from "../types.js";
 
 const base = (grants: TokenClaims["grants"]): TokenClaims => ({
   jti: "t",

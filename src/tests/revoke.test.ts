@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createPattern } from "./pattern.js";
-import { MemoryTokenStore } from "./store-memory.js";
+import { createPattern } from "../pattern.js";
+import { MemoryTokenStore } from "../store/index.js";
 
 describe("revoke", () => {
   it("revoked jti fails immediately (AE4)", async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createPattern } from "./pattern.js";
+import { createPattern } from "../pattern.js";
 
 describe("issue", () => {
   it("access token cannot issue (AE2)", async () => {

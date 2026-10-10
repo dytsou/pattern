@@ -1,4 +1,4 @@
-import type { TokenRecord, TokenStore } from "./store.js";
+import type { TokenRecord, TokenStore } from "./types.js";
 
 /**
  * Ultra-minimal revoke: one generation counter.

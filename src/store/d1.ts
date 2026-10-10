@@ -1,4 +1,4 @@
-import type { TokenRecord, TokenStore } from "./store.js";
+import type { TokenRecord, TokenStore } from "./types.js";
 
 /** Minimal D1 surface used by the adapter. */
 export interface D1Like {
