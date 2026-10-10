@@ -26,6 +26,8 @@ export interface TokenClaims {
   maxDepth: number;
   parentJti?: string;
   name?: string;
+  /** Stamped when using EpochTokenStore; must match store.currentEpoch(). */
+  epoch?: number;
 }
 
 export type Decision =

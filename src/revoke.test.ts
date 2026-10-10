@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createPattern } from "./pattern.js";
+import { MemoryTokenStore } from "./store-memory.js";
 
 describe("revoke", () => {
   it("revoked jti fails immediately (AE4)", async () => {
@@ -57,5 +58,33 @@ describe("revoke", () => {
     if (!leaf.ok) return;
     await p.revoke(mid.claims.jti, { cascade: true });
     expect((await p.decide(leaf.token, "GET", "/api/docs")).allow).toBe(false);
+  });
+
+  it("MemoryTokenStore.stats counts revoked rows", async () => {
+    const store = new MemoryTokenStore();
+    const p = await createPattern({
+      secret: "s",
+      store,
+      roots: [
+        {
+          kind: "delegation",
+          grants: [{ method: "GET", path: "/**" }],
+        },
+      ],
+    });
+    const root = p.roots[0]!;
+    const child = await p.issue({
+      parent: root.token,
+      grants: [{ method: "GET", path: "/x" }],
+      expiresAt: root.claims.exp - 1,
+    });
+    expect(child.ok).toBe(true);
+    if (!child.ok) return;
+    expect(store.stats()).toEqual({ total: 2, revoked: 0, active: 2 });
+    await p.revoke(child.claims.jti, { cascade: false });
+    expect(store.stats()).toEqual({ total: 2, revoked: 1, active: 1 });
+    expect(
+      store.list().some((r) => r.jti === child.claims.jti && r.revokedAt),
+    ).toBe(true);
   });
 });

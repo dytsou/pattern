@@ -1,4 +1,4 @@
-import type { TokenRecord, TokenStore } from "./store.js";
+import type { TokenRecord, TokenStore, TokenStoreStats } from "./store.js";
 
 export class MemoryTokenStore implements TokenStore {
   private readonly rows = new Map<string, TokenRecord>();
@@ -39,5 +39,19 @@ export class MemoryTokenStore implements TokenStore {
       }
     }
     return Promise.resolve();
+  }
+
+  /** Snapshot for operator tooling (not a durable audit log). */
+  stats(): TokenStoreStats {
+    let revoked = 0;
+    for (const row of this.rows.values()) {
+      if (row.revokedAt) revoked += 1;
+    }
+    const total = this.rows.size;
+    return { total, revoked, active: total - revoked };
+  }
+
+  list(): TokenRecord[] {
+    return [...this.rows.values()].map((r) => ({ ...r }));
   }
 }

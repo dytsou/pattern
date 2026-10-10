@@ -1,6 +1,7 @@
 import { decideFromClaims } from "./decide.js";
 import { issueChild } from "./issue.js";
 import type { TokenStore } from "./store.js";
+import { isEpochTokenStore } from "./store-epoch.js";
 import { MemoryTokenStore } from "./store-memory.js";
 import { newJti, signToken, verifyToken } from "./token.js";
 import type {
@@ -74,6 +75,9 @@ export async function createPattern(
         maxDepth: root.maxDepth ?? 8,
         name: root.name,
       };
+      if (isEpochTokenStore(store)) {
+        claims.epoch = store.currentEpoch();
+      }
       const token = await signToken(claims, opts.secret);
       await store.put({
         jti: claims.jti,
@@ -85,7 +89,11 @@ export async function createPattern(
     async verify(raw, now = Date.now()) {
       const v = await verifyToken(raw, opts.secret, now);
       if (!v.ok) return { ok: false, reason: v.reason };
-      if (await store.isRevoked(v.claims.jti)) {
+      if (isEpochTokenStore(store)) {
+        if (v.claims.epoch !== store.currentEpoch()) {
+          return { ok: false, reason: "revoked" };
+        }
+      } else if (await store.isRevoked(v.claims.jti)) {
         return { ok: false, reason: "revoked" };
       }
       return { ok: true, claims: v.claims };

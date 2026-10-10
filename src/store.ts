@@ -13,3 +13,10 @@ export interface TokenStore {
   revoke(jti: string, cascade: boolean, now?: number): Promise<void>;
   isRevoked(jti: string): Promise<boolean>;
 }
+
+/** Optional operator visibility — MemoryTokenStore implements this. */
+export interface TokenStoreStats {
+  total: number;
+  revoked: number;
+  active: number;
+}
