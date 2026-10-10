@@ -52,7 +52,7 @@
     "hono": "^4.9.0",
     "swagger-ui-dist": "5.33.1",
     "typescript": "^5.9.0",
-    "vitest": "^3.2.0"
+    "vitest": "^4.1.11"
   },
   "license": "MIT",
   "keywords": [
