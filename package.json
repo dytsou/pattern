@@ -13,6 +13,10 @@
     "./hono": {
       "types": "./dist/hono/index.d.ts",
       "import": "./dist/hono/index.js"
+    },
+    "./properties": {
+      "types": "./dist/properties.d.ts",
+      "import": "./dist/properties.js"
     }
   },
   "files": [
@@ -57,9 +61,13 @@
     "pnpm": ">=12"
   },
   "peerDependencies": {
+    "fast-check": "^4.0.0",
     "hono": "^4.0.0"
   },
   "peerDependenciesMeta": {
+    "fast-check": {
+      "optional": true
+    },
     "hono": {
       "optional": true
     }

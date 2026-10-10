@@ -181,9 +181,19 @@ app.post("/pat/introspect", createIntrospectHandler(pattern));
 
 Request body: `{ "token", "method", "path" }`. See [`openapi.yaml`](openapi.yaml) for the HTTP shape.
 
-## Example sketch
+## Property corpus
 
-A minimal Worker wiring lives in [`examples/hono-worker`](examples/hono-worker).
+Shipped invariants (peer `fast-check`):
+
+```ts
+import { runPropertyCorpus } from "@dytsou/pattern/properties";
+
+await runPropertyCorpus(); // or call propDenyByDefault, propRevokePropagates, …
+```
+
+## Example
+
+A typed Worker wiring lives in [`examples/hono-worker`](examples/hono-worker).
 
 
 ## AI agents (Cursor, Claude Code, Codex, OpenCode, Kimi, …)
