@@ -1,4 +1,4 @@
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   propAccessNotDelegationAndChildExpiry,
   propDenyByDefault,
@@ -8,18 +8,20 @@ import {
 
 describe("properties", () => {
   it("prop_denyByDefault: empty grants never allow", () => {
-    propDenyByDefault();
+    expect(() => propDenyByDefault()).not.toThrow();
   });
 
   it("prop_noEscalation: intersect never widens", () => {
-    propNoEscalation();
+    expect(() => propNoEscalation()).not.toThrow();
   });
 
   it("prop_accessNotDelegation + childExpiryLEParent", async () => {
-    await propAccessNotDelegationAndChildExpiry();
+    await expect(
+      propAccessNotDelegationAndChildExpiry(),
+    ).resolves.toBeUndefined();
   });
 
   it("prop_revokePropagates: cascade denies descendants", async () => {
-    await propRevokePropagates();
+    await expect(propRevokePropagates()).resolves.toBeUndefined();
   });
 });

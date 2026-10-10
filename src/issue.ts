@@ -5,7 +5,35 @@ import {
   type TokenStore,
 } from "./store/index.js";
 import { newJti, signToken, verifyToken } from "./token.js";
-import type { IssueRequest, IssueResult, TokenClaims } from "./types.js";
+import type { Grant, IssueRequest, IssueResult, TokenClaims } from "./types.js";
+
+async function parentRevoked(
+  store: TokenStore,
+  parent: TokenClaims,
+): Promise<boolean> {
+  if (isEpochTokenStore(store)) {
+    return !epochAllows(parent.epoch, store.currentEpoch());
+  }
+  return await store.isRevoked(parent.jti);
+}
+
+type IssueFail = Extract<IssueResult, { ok: false }>;
+
+function attenuateDelegatable(
+  parentCaps: Grant[],
+  requested: Grant[] | undefined,
+): { ok: true; grants: Grant[] | undefined } | IssueFail {
+  if (!requested?.length) return { ok: true, grants: requested };
+  const d = intersectGrants(parentCaps, requested);
+  if (!d.ok) {
+    return {
+      ok: false,
+      reason: "privilege_escalation",
+      diff: buildDiff({ excessGrants: d.excess }),
+    };
+  }
+  return { ok: true, grants: d.grants };
+}
 
 export async function issueChild(
   req: IssueRequest,
@@ -21,11 +49,7 @@ export async function issueChild(
   if (parent.kind !== "delegation") {
     return { ok: false, reason: "not_delegatable" };
   }
-  if (isEpochTokenStore(store)) {
-    if (!epochAllows(parent.epoch, store.currentEpoch())) {
-      return { ok: false, reason: "revoked" };
-    }
-  } else if (await store.isRevoked(parent.jti)) {
+  if (await parentRevoked(store, parent)) {
     return { ok: false, reason: "revoked" };
   }
 
@@ -39,18 +63,9 @@ export async function issueChild(
     };
   }
 
-  let childDelegatable = req.delegatable;
-  if (childDelegatable?.length) {
-    const d = intersectGrants(parentCaps, childDelegatable);
-    if (!d.ok) {
-      return {
-        ok: false,
-        reason: "privilege_escalation",
-        diff: buildDiff({ excessGrants: d.excess }),
-      };
-    }
-    childDelegatable = d.grants;
-  }
+  const deleg = attenuateDelegatable(parentCaps, req.delegatable);
+  if (!deleg.ok) return deleg;
+  const childDelegatable = deleg.grants;
 
   if (req.expiresAt > parent.exp) {
     return {
@@ -62,16 +77,11 @@ export async function issueChild(
 
   const nextDepth = parent.depth + 1;
   const maxDepth = req.maxDepth ?? parent.maxDepth;
-  if (nextDepth > maxDepth) {
-    return {
-      ok: false,
-      reason: "depth_exceeded",
-      diff: buildDiff({ depthExceeded: true }),
-    };
-  }
-
   const kind = req.kind ?? "access";
-  if (kind === "delegation" && nextDepth >= maxDepth) {
+  if (
+    nextDepth > maxDepth ||
+    (kind === "delegation" && nextDepth >= maxDepth)
+  ) {
     return {
       ok: false,
       reason: "depth_exceeded",
