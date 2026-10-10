@@ -75,7 +75,10 @@ export async function issueChild(
     jti: newJti(),
     kind,
     grants: grantResult.grants,
-    delegatable: kind === "delegation" ? childDelegatable ?? grantResult.grants : undefined,
+    delegatable:
+      kind === "delegation"
+        ? (childDelegatable ?? grantResult.grants)
+        : undefined,
     exp: req.expiresAt,
     depth: nextDepth,
     maxDepth,

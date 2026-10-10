@@ -20,6 +20,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "test": "vitest run",
     "test:ci": "vitest run --maxWorkers=1",
     "test:watch": "vitest"
@@ -37,6 +40,7 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@cloudflare/workers-types": "^4.20251011.0",
     "@types/node": "^22.10.0",
     "fast-check": "^4.1.1",

@@ -25,7 +25,11 @@ function pathAtMost(childPat: string, parentPat: string): boolean {
     const prefix = parentPat.slice(0, -2);
     // child must be exactly one segment under prefix, or exact file under prefix
     if (childPat === parentPat) return true;
-    if (childPat.startsWith(prefix + "/") && !childPat.slice(prefix.length + 1).includes("/") && !childPat.includes("*")) {
+    if (
+      childPat.startsWith(prefix + "/") &&
+      !childPat.slice(prefix.length + 1).includes("/") &&
+      !childPat.includes("*")
+    ) {
       return true;
     }
     return false;

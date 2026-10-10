@@ -6,9 +6,7 @@ export function grantsAllow(
   method: HttpMethod,
   path: string,
 ): boolean {
-  return grants.some(
-    (g) => g.method === method && matchPath(g.path, path),
-  );
+  return grants.some((g) => g.method === method && matchPath(g.path, path));
 }
 
 /** Joint allowlist decision from verified claims. */

@@ -37,7 +37,9 @@ export interface Pattern {
   verify(
     raw: string,
     now?: number,
-  ): Promise<{ ok: true; claims: TokenClaims } | { ok: false; reason: DenyReason }>;
+  ): Promise<
+    { ok: true; claims: TokenClaims } | { ok: false; reason: DenyReason }
+  >;
   decide(
     rawToken: string | null,
     method: HttpMethod,

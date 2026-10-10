@@ -71,7 +71,9 @@ export class D1TokenStore implements TokenStore {
   async revoke(jti: string, cascade: boolean, now = Date.now()): Promise<void> {
     const ts = Math.floor(now / 1000);
     await this.db
-      .prepare(`UPDATE pattern_tokens SET revoked_at = ? WHERE jti = ? AND revoked_at IS NULL`)
+      .prepare(
+        `UPDATE pattern_tokens SET revoked_at = ? WHERE jti = ? AND revoked_at IS NULL`,
+      )
       .bind(ts, jti)
       .run();
     if (!cascade) return;

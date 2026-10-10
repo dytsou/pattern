@@ -1,4 +1,9 @@
-export { createPattern, type CreatePatternOptions, type Pattern, type StaticRoot } from "./pattern.js";
+export {
+  createPattern,
+  type CreatePatternOptions,
+  type Pattern,
+  type StaticRoot,
+} from "./pattern.js";
 export { decideFromClaims, grantsAllow } from "./decide.js";
 export { matchPath, normalizePath } from "./path.js";
 export { intersectGrants, grantCoveredBy, buildDiff } from "./intersect.js";

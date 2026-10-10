@@ -29,21 +29,37 @@ describe("matchPath", () => {
 
 describe("decideFromClaims", () => {
   it("allows exact grant", () => {
-    const d = decideFromClaims(base([{ method: "GET", path: "/docs/*" }]), "GET", "/docs/x");
+    const d = decideFromClaims(
+      base([{ method: "GET", path: "/docs/*" }]),
+      "GET",
+      "/docs/x",
+    );
     expect(d.allow).toBe(true);
   });
   it("denies method mismatch", () => {
-    const d = decideFromClaims(base([{ method: "GET", path: "/docs/*" }]), "POST", "/docs/x");
+    const d = decideFromClaims(
+      base([{ method: "GET", path: "/docs/*" }]),
+      "POST",
+      "/docs/x",
+    );
     expect(d.allow).toBe(false);
     if (!d.allow) expect(d.reason).toBe("method_not_allowed");
   });
   it("denies unknown path (AE1)", () => {
-    const d = decideFromClaims(base([{ method: "GET", path: "/docs/*" }]), "GET", "/admin");
+    const d = decideFromClaims(
+      base([{ method: "GET", path: "/docs/*" }]),
+      "GET",
+      "/admin",
+    );
     expect(d.allow).toBe(false);
     if (!d.allow) expect(d.reason).toBe("path_not_allowed");
   });
   it("grantsAllow joint check", () => {
-    expect(grantsAllow([{ method: "GET", path: "/a" }], "GET", "/a")).toBe(true);
-    expect(grantsAllow([{ method: "GET", path: "/a" }], "POST", "/a")).toBe(false);
+    expect(grantsAllow([{ method: "GET", path: "/a" }], "GET", "/a")).toBe(
+      true,
+    );
+    expect(grantsAllow([{ method: "GET", path: "/a" }], "POST", "/a")).toBe(
+      false,
+    );
   });
 });

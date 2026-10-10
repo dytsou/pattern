@@ -15,22 +15,32 @@ const grantArb: fc.Arbitrary<Grant> = fc.record({
 describe("properties", () => {
   it("prop_denyByDefault: empty grants never allow", () => {
     fc.assert(
-      fc.property(fc.constantFrom(...methods), fc.string({ minLength: 1, maxLength: 20 }), (m, path) => {
-        expect(grantsAllow([], m, path.startsWith("/") ? path : "/" + path)).toBe(false);
-      }),
+      fc.property(
+        fc.constantFrom(...methods),
+        fc.string({ minLength: 1, maxLength: 20 }),
+        (m, path) => {
+          expect(
+            grantsAllow([], m, path.startsWith("/") ? path : "/" + path),
+          ).toBe(false);
+        },
+      ),
     );
   });
 
   it("prop_noEscalation: intersect never widens", () => {
     fc.assert(
-      fc.property(fc.array(grantArb, { maxLength: 5 }), fc.array(grantArb, { maxLength: 5 }), (parent, req) => {
-        const r = intersectGrants(parent, req);
-        if (r.ok) {
-          for (const g of r.grants) {
-            expect(parent.some((p) => p.method === g.method)).toBe(true);
+      fc.property(
+        fc.array(grantArb, { maxLength: 5 }),
+        fc.array(grantArb, { maxLength: 5 }),
+        (parent, req) => {
+          const r = intersectGrants(parent, req);
+          if (r.ok) {
+            for (const g of r.grants) {
+              expect(parent.some((p) => p.method === g.method)).toBe(true);
+            }
           }
-        }
-      }),
+        },
+      ),
     );
   });
 
