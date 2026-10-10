@@ -15,7 +15,14 @@
       "import": "./dist/hono/index.js"
     }
   },
-  "files": ["dist", "migrations", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "migrations",
+    "README.md",
+    "LICENSE",
+    ".agents",
+    "AGENTS.md"
+  ],
   "packageManager": "pnpm@12.11.2",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -183,6 +183,19 @@ Request body: `{ "token", "method", "path" }`. See [`openapi.yaml`](openapi.yaml
 
 A minimal Worker wiring lives in [`examples/hono-worker`](examples/hono-worker).
 
+
+## AI agents (Cursor, Claude Code, Codex, OpenCode, Kimi, …)
+
+This repo ships an [Agent Skill](https://agentskills.io) so coding agents can wire `pattern` correctly:
+
+| Layout | Agents |
+| --- | --- |
+| [`.agents/skills/pattern/`](.agents/skills/pattern/SKILL.md) | Cursor, Codex, OpenCode, Kimi, AGI, other agentskills clients |
+| `.claude/skills/pattern/` | Claude Code (symlink) |
+| `.cursor/skills/`, `.codex/skills/`, `.opencode/skills/` | Extra discovery paths (symlinks) |
+
+Project pointer: [`AGENTS.md`](AGENTS.md). The published package includes `.agents/` + `AGENTS.md` — copy `node_modules/pattern/.agents/skills/pattern` into your app’s `.agents/skills/pattern` if you consume via npm.
+
 ## License
 
 See [LICENSE](LICENSE) for details.
