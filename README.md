@@ -95,4 +95,5 @@ Dependabot (weekly) and CodeQL run on `main` / PRs. SonarCloud uses Automatic An
 
 ## License
 
-MIT
+
+See [LICENSE](LICENSE) for details.
