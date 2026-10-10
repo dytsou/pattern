@@ -4,8 +4,6 @@ Personal Access Token (PAT) auth for Cloudflare Workers: **path × method** allo
 
 ## Install
 
-Published as **`@dytsou/pattern`** — the unscoped npm name `pattern` is already taken.
-
 ```bash
 pnpm add @dytsou/pattern
 pnpm add hono
@@ -137,6 +135,18 @@ await pattern.revoke(child.claims.jti);
 
 Later requests with that token fail with `revoked`.
 
+Exact `jti` mesh (`MemoryTokenStore` / `D1TokenStore`) is the default. For ultra-minimal deploys, `EpochTokenStore` stamps `claims.epoch` and treats any `revoke` as a **global generation bump** (all prior tokens die). Persist `store.state` yourself if you need durability across isolates.
+
+```ts
+import { createPattern, EpochTokenStore } from "@dytsou/pattern";
+
+const store = new EpochTokenStore(); // or new EpochTokenStore({ epoch: n }) from KV
+const pattern = await createPattern({ secret, store, roots: [/* … */] });
+await pattern.revoke("any-jti"); // bumps epoch — cascade is irrelevant
+```
+
+`MemoryTokenStore` also exposes `stats()` / `list()` for light operator visibility (counts and in-memory rows — not an admin product).
+
 ## Persist with D1
 
 1. Apply [`migrations/0001_init.sql`](migrations/0001_init.sql) to your D1 database.
@@ -191,10 +201,14 @@ import { runPropertyCorpus } from "@dytsou/pattern/properties";
 await runPropertyCorpus(); // or call propDenyByDefault, propRevokePropagates, …
 ```
 
-## Example
+## Examples
 
-A typed Worker wiring lives in [`examples/hono-worker`](examples/hono-worker).
+| Path | Runtime |
+| --- | --- |
+| [`examples/hono-worker`](examples/hono-worker) | Cloudflare Workers + Hono + D1 |
+| [`examples/runtimes/smoke.ts`](examples/runtimes/smoke.ts) | Node 20+ / Bun / Deno (Web Crypto) |
 
+Traditional Chinese overview: [`README.zh-TW.md`](README.zh-TW.md) (English remains canonical).
 
 ## AI agents (Cursor, Claude Code, Codex, OpenCode, Kimi, …)
 

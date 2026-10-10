@@ -23,6 +23,7 @@
     "dist",
     "migrations",
     "README.md",
+    "README.zh-TW.md",
     "LICENSE",
     ".agents",
     "AGENTS.md"
