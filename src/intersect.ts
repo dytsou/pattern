@@ -14,12 +14,10 @@ function pathAtMost(childPat: string, parentPat: string): boolean {
   // Parent /** covers everything under prefix
   if (parentPat.endsWith("/**")) {
     const prefix = parentPat.slice(0, -3);
-    const c = childPat.endsWith("/**")
-      ? childPat.slice(0, -3)
-      : childPat.endsWith("/*")
-        ? childPat.slice(0, -2)
-        : childPat;
-    return c === prefix || c.startsWith(prefix + "/");
+    let childPrefix = childPat;
+    if (childPat.endsWith("/**")) childPrefix = childPat.slice(0, -3);
+    else if (childPat.endsWith("/*")) childPrefix = childPat.slice(0, -2);
+    return childPrefix === prefix || childPrefix.startsWith(prefix + "/");
   }
   if (parentPat.endsWith("/*")) {
     const prefix = parentPat.slice(0, -2);

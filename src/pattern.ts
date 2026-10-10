@@ -104,10 +104,13 @@ export async function createPattern(
     },
   };
 
-  for (const root of opts.roots ?? []) {
-    const minted = await api.mintRoot(root);
-    roots.push({ name: root.name, token: minted.token, claims: minted.claims });
-  }
+  const mintedRoots = await Promise.all(
+    (opts.roots ?? []).map(async (root) => {
+      const minted = await api.mintRoot(root);
+      return { name: root.name, token: minted.token, claims: minted.claims };
+    }),
+  );
+  roots.push(...mintedRoots);
 
   return api;
 }

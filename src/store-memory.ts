@@ -1,22 +1,23 @@
 import type { TokenRecord, TokenStore } from "./store.js";
 
 export class MemoryTokenStore implements TokenStore {
-  private rows = new Map<string, TokenRecord>();
+  private readonly rows = new Map<string, TokenRecord>();
 
-  async put(record: TokenRecord): Promise<void> {
+  put(record: TokenRecord): Promise<void> {
     this.rows.set(record.jti, { ...record });
+    return Promise.resolve();
   }
 
-  async get(jti: string): Promise<TokenRecord | null> {
-    return this.rows.get(jti) ?? null;
+  get(jti: string): Promise<TokenRecord | null> {
+    return Promise.resolve(this.rows.get(jti) ?? null);
   }
 
-  async isRevoked(jti: string): Promise<boolean> {
+  isRevoked(jti: string): Promise<boolean> {
     const row = this.rows.get(jti);
-    return Boolean(row?.revokedAt);
+    return Promise.resolve(Boolean(row?.revokedAt));
   }
 
-  async revoke(jti: string, cascade: boolean, now = Date.now()): Promise<void> {
+  revoke(jti: string, cascade: boolean, now = Date.now()): Promise<void> {
     const ts = Math.floor(now / 1000);
     const mark = (id: string) => {
       const row = this.rows.get(id);
@@ -26,7 +27,7 @@ export class MemoryTokenStore implements TokenStore {
       }
     };
     mark(jti);
-    if (!cascade) return;
+    if (!cascade) return Promise.resolve();
     const queue = [jti];
     while (queue.length) {
       const parent = queue.shift()!;
@@ -37,5 +38,6 @@ export class MemoryTokenStore implements TokenStore {
         }
       }
     }
+    return Promise.resolve();
   }
 }

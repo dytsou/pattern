@@ -2,6 +2,7 @@ import type { Context } from "hono";
 import { decideFromClaims } from "../decide.js";
 import type { Pattern } from "../pattern.js";
 import type { HttpMethod } from "../types.js";
+import { bearer } from "./middleware.js";
 
 /**
  * Opt-in introspect handler. Caller must already be authenticated as a
@@ -9,8 +10,7 @@ import type { HttpMethod } from "../types.js";
  */
 export function createIntrospectHandler(pattern: Pattern) {
   return async (c: Context) => {
-    const auth = c.req.header("Authorization");
-    const presented = auth?.match(/^Bearer\s+(.+)$/i)?.[1];
+    const presented = bearer(c.req.header("Authorization"));
     if (!presented) return c.json({ error: "missing_token" }, 401);
     const caller = await pattern.verify(presented);
     if (!caller.ok) return c.json({ error: caller.reason }, 401);

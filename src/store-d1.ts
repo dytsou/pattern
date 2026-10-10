@@ -20,7 +20,7 @@ type Row = {
 };
 
 export class D1TokenStore implements TokenStore {
-  constructor(private db: D1Like) {}
+  constructor(private readonly db: D1Like) {}
 
   async put(record: TokenRecord): Promise<void> {
     await this.db
@@ -77,27 +77,31 @@ export class D1TokenStore implements TokenStore {
       .bind(ts, jti)
       .run();
     if (!cascade) return;
+    // Level-by-level cascade via parent_jti — small trees expected for v1
+    await this.revokeDescendants(ts, [jti]);
+  }
 
-    // Iterative BFS via parent_jti — small trees expected for v1
-    let frontier = [jti];
-    while (frontier.length) {
-      const placeholders = frontier.map(() => "?").join(",");
-      const { results } = await this.db
-        .prepare(
-          `SELECT jti FROM pattern_tokens WHERE parent_jti IN (${placeholders}) AND revoked_at IS NULL`,
-        )
-        .bind(...frontier)
-        .all<{ jti: string }>();
-      const children = results.map((r) => r.jti);
-      if (!children.length) break;
-      const cPlace = children.map(() => "?").join(",");
-      await this.db
-        .prepare(
-          `UPDATE pattern_tokens SET revoked_at = ? WHERE jti IN (${cPlace})`,
-        )
-        .bind(ts, ...children)
-        .run();
-      frontier = children;
-    }
+  private async revokeDescendants(
+    ts: number,
+    parents: string[],
+  ): Promise<void> {
+    if (!parents.length) return;
+    const placeholders = parents.map(() => "?").join(",");
+    const { results } = await this.db
+      .prepare(
+        `SELECT jti FROM pattern_tokens WHERE parent_jti IN (${placeholders}) AND revoked_at IS NULL`,
+      )
+      .bind(...parents)
+      .all<{ jti: string }>();
+    const children = results.map((r) => r.jti);
+    if (!children.length) return;
+    const cPlace = children.map(() => "?").join(",");
+    await this.db
+      .prepare(
+        `UPDATE pattern_tokens SET revoked_at = ? WHERE jti IN (${cPlace})`,
+      )
+      .bind(ts, ...children)
+      .run();
+    await this.revokeDescendants(ts, children);
   }
 }

@@ -2,10 +2,21 @@ import type { Context, MiddlewareHandler, Next } from "hono";
 import type { Pattern } from "../pattern.js";
 import type { Decision, HttpMethod } from "../types.js";
 
-function bearer(header: string | undefined): string | null {
+/** Parse `Authorization: Bearer <token>` without a backtracking regex. */
+export function bearer(header: string | undefined): string | null {
   if (!header) return null;
-  const m = /^Bearer\s+(.+)$/i.exec(header.trim());
-  return m?.[1] ?? null;
+  const trimmed = header.trim();
+  if (trimmed.length < 8) return null;
+  if (trimmed.slice(0, 6).toLowerCase() !== "bearer") return null;
+  let i = 6;
+  while (i < trimmed.length && (trimmed[i] === " " || trimmed[i] === "\t")) {
+    i++;
+  }
+  if (i === 6 || i >= trimmed.length) return null;
+  const token = trimmed.slice(i);
+  // Bearer tokens are a single token; reject embedded whitespace.
+  if (token.includes(" ") || token.includes("\t")) return null;
+  return token;
 }
 
 /** present → exercise in one middleware for the happy path. */
