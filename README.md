@@ -91,7 +91,7 @@ pnpm run api:preview # serve dist/api on :4173
 ```
 
 CI also runs Biome (`format:check`, `lint`), tests, build, and API docs generation.
-Dependabot (weekly) and CodeQL run on `main` / PRs.
+Dependabot (weekly) and CodeQL run on `main` / PRs. SonarCloud uses Automatic Analysis (`dytsou_pattern`).
 
 ## License
 

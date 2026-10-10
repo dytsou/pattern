@@ -6,3 +6,5 @@ package-lock.json
 npm-shrinkwrap.json
 yarn.lock
 .redocly-lint-cache/
+.scannerwork/
+.sonar/
