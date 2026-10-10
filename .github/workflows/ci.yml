@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting
+        run: pnpm run format:check
+
+      - name: Run linter
+        run: pnpm run lint
+
+      - name: Run type check
+        run: pnpm run typecheck
+
+      - name: Run tests
+        run: pnpm run test:ci
+
+      - name: Build library
+        run: pnpm run build
+
+      - name: Validate OpenAPI contract
+        run: pnpm run api:lint
+
+      - name: Generate API documentation
+        run: pnpm run api:build
+
+      - name: Verify generated API documentation
+        run: |
+          test -f dist/api/index.html
+          test -f dist/api/openapi.yaml
