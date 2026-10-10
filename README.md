@@ -91,6 +91,7 @@ pnpm run api:preview # serve dist/api on :4173
 ```
 
 CI also runs Biome (`format:check`, `lint`), tests, build, and API docs generation.
+Dependabot (weekly) runs on this repository.
 
 ## License
 
