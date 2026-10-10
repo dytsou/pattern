@@ -1,0 +1,49 @@
+name: Publish skill
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".agents/skills/**"
+      - "AGENTS.md"
+      - ".github/scripts/skill/**"
+      - ".github/workflows/publish-skill.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate agent skill
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate SKILL.md
+        run: bash .github/scripts/skill/validate-skill.sh
+
+      - name: Compatibility symlinks resolve
+        run: bash .github/scripts/skill/check-symlinks.sh
+
+      - name: List installable skills
+        run: |
+          npx --yes skills add "${{ github.repository }}" --list || \
+            echo "::notice::skills CLI list failed (network/index); structure validation passed"
+
+  announce:
+    name: Skill install summary
+    needs: validate
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Write summary
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: bash .github/scripts/skill/write-install-summary.sh

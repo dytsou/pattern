@@ -1,6 +1,6 @@
 {
-  "name": "pattern",
-  "version": "0.1.0",
+  "name": "@dytsou/pattern",
+  "version": "1.0.0-beta",
   "description": "Edge PAT auth for Cloudflare Workers — path×method ACL, hierarchical issuance, exact revoke",
   "type": "module",
   "main": "./dist/index.js",
@@ -23,10 +23,22 @@
     ".agents",
     "AGENTS.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dytsou/pattern.git"
+  },
+  "homepage": "https://github.com/dytsou/pattern#readme",
+  "bugs": {
+    "url": "https://github.com/dytsou/pattern/issues"
+  },
   "packageManager": "pnpm@12.11.2",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:all": "pnpm run build && pnpm run api:lint && pnpm run api:build",
+    "prepublishOnly": "pnpm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "biome lint .",
     "format": "biome format --write .",
@@ -36,7 +48,9 @@
     "test:watch": "vitest",
     "api:lint": "redocly lint openapi.yaml",
     "api:build": "node scripts/build-api-docs.mjs",
-    "api:preview": "pnpm run api:build && python3 -m http.server 4173 --directory dist/api"
+    "api:preview": "pnpm run api:build && python3 -m http.server 4173 --directory dist/api",
+    "publish:npmjs": "pnpm publish --access public --no-git-checks --registry https://registry.npmjs.org",
+    "publish:github": "pnpm publish --access public --no-git-checks --registry https://npm.pkg.github.com"
   },
   "engines": {
     "node": ">=20",
@@ -67,6 +81,8 @@
     "pat",
     "hono",
     "authorization",
-    "delegation"
+    "delegation",
+    "agent-skills",
+    "personal-access-token"
   ]
 }

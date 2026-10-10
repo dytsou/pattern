@@ -4,24 +4,26 @@ Personal Access Token (PAT) auth for Cloudflare Workers: **path × method** allo
 
 ## Install
 
+Published as **`@dytsou/pattern`** — the unscoped npm name `pattern` is already taken.
+
 ```bash
-pnpm add pattern
+pnpm add @dytsou/pattern
 pnpm add hono
 ```
 
 Imports:
 
 ```ts
-import { createPattern, D1TokenStore, MemoryTokenStore } from "pattern";
-import { patternMiddleware, createIntrospectHandler } from "pattern/hono";
+import { createPattern, D1TokenStore, MemoryTokenStore } from "@dytsou/pattern";
+import { patternMiddleware, createIntrospectHandler } from "@dytsou/pattern/hono";
 ```
 
 ## Quick start (Hono on Workers)
 
 ```ts
 import { Hono } from "hono";
-import { createPattern, D1TokenStore } from "pattern";
-import { patternMiddleware } from "pattern/hono";
+import { createPattern, D1TokenStore } from "@dytsou/pattern";
+import { patternMiddleware } from "@dytsou/pattern/hono";
 
 type Env = { PATTERN_SECRET: string; DB: D1Database };
 
@@ -141,7 +143,7 @@ Later requests with that token fail with `revoked`.
 2. Pass `D1TokenStore`:
 
 ```ts
-import { createPattern, D1TokenStore } from "pattern";
+import { createPattern, D1TokenStore } from "@dytsou/pattern";
 
 const pattern = await createPattern({
   secret: env.PATTERN_SECRET,
@@ -172,7 +174,7 @@ if (!decision.allow) {
 Mount only behind your own auth expectations (handler requires a **delegation** Bearer):
 
 ```ts
-import { createIntrospectHandler } from "pattern/hono";
+import { createIntrospectHandler } from "@dytsou/pattern/hono";
 
 app.post("/pat/introspect", createIntrospectHandler(pattern));
 ```
@@ -194,7 +196,7 @@ This repo ships an [Agent Skill](https://agentskills.io) so coding agents can wi
 | `.claude/skills/pattern/` | Claude Code (symlink) |
 | `.cursor/skills/`, `.codex/skills/`, `.opencode/skills/` | Extra discovery paths (symlinks) |
 
-Project pointer: [`AGENTS.md`](AGENTS.md). The published package includes `.agents/` + `AGENTS.md` — copy `node_modules/pattern/.agents/skills/pattern` into your app’s `.agents/skills/pattern` if you consume via npm.
+Project pointer: [`AGENTS.md`](AGENTS.md). The published package includes `.agents/` + `AGENTS.md` — copy `node_modules/@dytsou/pattern/.agents/skills/pattern` into your app’s `.agents/skills/pattern` if you consume via npm.
 
 ## License
 

@@ -8,25 +8,25 @@ description: >-
   mentions pattern, EdgePAT, or Worker personal access tokens.
 license: MIT
 metadata:
-  package: pattern
+  package: "@dytsou/pattern"
   std: agentskills
 ---
 
 # pattern — Worker PAT auth
 
-Teach the agent to wire [`pattern`](https://www.npmjs.com/package/pattern) correctly. Prefer this skill over inventing custom JWT/PAT schemes.
+Teach the agent to wire [`@dytsou/pattern`](https://www.npmjs.com/package/@dytsou/pattern) correctly. Prefer this skill over inventing custom JWT/PAT schemes.
 
 ## Install
 
 ```bash
-pnpm add pattern
+pnpm add @dytsou/pattern
 # Hono helpers (optional peer)
 pnpm add hono
 ```
 
 ```ts
-import { createPattern, D1TokenStore, MemoryTokenStore } from "pattern";
-import { patternMiddleware, createIntrospectHandler } from "pattern/hono";
+import { createPattern, D1TokenStore, MemoryTokenStore } from "@dytsou/pattern";
+import { patternMiddleware, createIntrospectHandler } from "@dytsou/pattern/hono";
 ```
 
 ## Non-negotiables
@@ -49,8 +49,8 @@ import { patternMiddleware, createIntrospectHandler } from "pattern/hono";
 
 ```ts
 import { Hono } from "hono";
-import { createPattern, D1TokenStore } from "pattern";
-import { patternMiddleware } from "pattern/hono";
+import { createPattern, D1TokenStore } from "@dytsou/pattern";
+import { patternMiddleware } from "@dytsou/pattern/hono";
 
 type Env = { PATTERN_SECRET: string; DB: D1Database };
 
@@ -123,7 +123,7 @@ Requires a **delegation** Bearer. Body: `{ token, method, path }`. Contract: pac
 | `createIntrospectHandler` | Opt-in introspect route |
 | `matchPath` / `decideFromClaims` | Low-level helpers if needed |
 
-Read the package `README.md` and `openapi.yaml` in `node_modules/pattern` (or the repo root) for full usage.
+Read the package `README.md` and `openapi.yaml` in `node_modules/@dytsou/pattern` (or the repo root) for full usage.
 
 ## Checklist when integrating
 
