@@ -1,16 +1,26 @@
 # pattern
 
-Lightweight **Personal Access Token** auth for Cloudflare Workers: path × method allowlists, hierarchical issuance (access ≠ delegation), and exact `jti` revocation.
+Personal Access Token (PAT) auth for Cloudflare Workers: **path × method** allowlists, hierarchical issuance, and exact `jti` revocation.
 
-## Ten-minute Hono path
+## Install
 
 ```bash
-pnpm add pattern hono
+pnpm add pattern
+pnpm add hono
 ```
+
+Imports:
+
+```ts
+import { createPattern, D1TokenStore, MemoryTokenStore } from "pattern";
+import { patternMiddleware, createIntrospectHandler } from "pattern/hono";
+```
+
+## Quick start (Hono on Workers)
 
 ```ts
 import { Hono } from "hono";
-import { createPattern } from "pattern";
+import { createPattern, D1TokenStore } from "pattern";
 import { patternMiddleware } from "pattern/hono";
 
 type Env = { PATTERN_SECRET: string; DB: D1Database };
@@ -20,7 +30,7 @@ const app = new Hono<{ Bindings: Env }>();
 app.use("*", async (c, next) => {
   const pattern = await createPattern({
     secret: c.env.PATTERN_SECRET,
-    // production: store: new D1TokenStore(c.env.DB),
+    store: new D1TokenStore(c.env.DB),
     roots: [
       {
         name: "root",
@@ -29,11 +39,15 @@ app.use("*", async (c, next) => {
           { method: "GET", path: "/docs/**" },
           { method: "GET", path: "/api/**" },
         ],
+        // what this token may pass to children
         delegatable: [{ method: "GET", path: "/docs/**" }],
       },
     ],
   });
-  c.set("pattern", pattern);
+
+  // Log once at boot if you need the minted root token:
+  // console.log(pattern.roots[0]?.token);
+
   return patternMiddleware(pattern)(c, next);
 });
 
@@ -42,33 +56,89 @@ app.get("/docs/hello", (c) => c.text("hello"));
 export default app;
 ```
 
-1. Put a long random string in `PATTERN_SECRET`.
-2. Log `pattern.roots[0].token` once at boot (or mint via `pattern.mintRoot`) and call with `Authorization: Bearer <token>`.
-3. Issue a child:
+Call your API with:
+
+```http
+Authorization: Bearer <token>
+```
+
+Without a matching grant (or with a missing/invalid/revoked token), the middleware responds `401` and `{ "error": "<reason>" }`.
+
+## Concepts
+
+| Idea | Meaning |
+| --- | --- |
+| **Grant** | One allowed `(method, path-pattern)` pair |
+| **Access token** | Can call APIs that match `grants`; cannot issue children |
+| **Delegation token** | Can call APIs and issue narrower children via `delegatable` |
+| **Attenuation** | Children cannot gain methods/paths or a longer expiry than the parent |
+| **Revoke** | Exact `jti`; cascade revokes descendants by default |
+
+Path patterns:
+
+| Pattern | Matches |
+| --- | --- |
+| `/docs` | Exact path |
+| `/docs/*` | One segment (`/docs/a`, not `/docs/a/b`) |
+| `/docs/**` | Prefix and all descendants |
+
+## Create a Pattern instance
 
 ```ts
-const child = await pattern.issue({
-  parent: rootToken,
-  grants: [{ method: "GET", path: "/docs/*" }],
-  expiresAt: Math.floor(Date.now() / 1000) + 3600,
+const pattern = await createPattern({
+  secret: env.PATTERN_SECRET, // long random string
+  store: new MemoryTokenStore(), // default if omitted
+  roots: [
+    /* optional StaticRoot[] minted at create time */
+  ],
 });
 ```
 
-4. Revoke: `await pattern.revoke(child.claims.jti)` — subsequent requests fail with `revoked`.
+`pattern` exposes:
 
-Optional introspect: `app.post("/pat/introspect", createIntrospectHandler(pattern))` (auth-gated; mount only when needed).
+| Method | Use |
+| --- | --- |
+| `verify(raw)` | Validate signature, expiry, revocation |
+| `decide(raw, method, path)` | Verify + allowlist check |
+| `issue({ parent, grants, expiresAt, ... })` | Mint a child under a parent token |
+| `revoke(jti, { cascade? })` | Revoke (cascade defaults to `true`) |
+| `mintRoot(root)` | Mint another root after create |
+| `roots` | Roots minted from `createPattern({ roots })` |
 
-## Security principles
+## Issue a child token
 
-- Deny by default (allowlist only)
-- Access ≠ delegation
-- No privilege escalation on `issue`
-- Child expiry ≤ parent expiry
-- Exact `jti` revoke with parent→child cascade
+Only a **delegation** parent can issue. Child grants must be covered by the parent's `delegatable` (or `grants` when used as the delegation set), and `expiresAt` must be ≤ parent `exp`.
 
-## D1
+```ts
+const child = await pattern.issue({
+  parent: rootToken, // raw Bearer token string
+  kind: "access", // or "delegation"
+  grants: [{ method: "GET", path: "/docs/*" }],
+  expiresAt: Math.floor(Date.now() / 1000) + 3600,
+});
 
-Apply `migrations/0001_init.sql`, then:
+if (!child.ok) {
+  // child.reason, optional child.diff (excessGrants, expiryTooLong, …)
+  throw new Error(child.reason);
+}
+
+// child.token → give to the client
+// child.claims.jti → keep if you need to revoke later
+```
+
+## Revoke
+
+```ts
+await pattern.revoke(child.claims.jti);
+// await pattern.revoke(jti, { cascade: false }); // this jti only
+```
+
+Later requests with that token fail with `revoked`.
+
+## Persist with D1
+
+1. Apply [`migrations/0001_init.sql`](migrations/0001_init.sql) to your D1 database.
+2. Pass `D1TokenStore`:
 
 ```ts
 import { createPattern, D1TokenStore } from "pattern";
@@ -76,24 +146,43 @@ import { createPattern, D1TokenStore } from "pattern";
 const pattern = await createPattern({
   secret: env.PATTERN_SECRET,
   store: new D1TokenStore(env.DB),
-  roots: [/* ... */],
+  roots: [
+    /* ... */
+  ],
 });
 ```
 
-## API page
+For local tests or ephemeral Workers, omit `store` (uses `MemoryTokenStore`).
 
-OpenAPI contract: [`openapi.yaml`](openapi.yaml).
+## Without middleware
 
-```bash
-pnpm run api:lint    # Redocly lint
-pnpm run api:build   # Swagger UI → dist/api/
-pnpm run api:preview # serve dist/api on :4173
+Pass the raw token string (the part after `Bearer `):
+
+```ts
+const decision = await pattern.decide(rawToken, "GET", "/docs/hello");
+
+if (!decision.allow) {
+  // decision.reason: missing_token | invalid_token | expired | revoked |
+  //                   method_not_allowed | path_not_allowed | …
+}
 ```
 
-CI also runs Biome (`format:check`, `lint`), tests, build, and API docs generation.
-Dependabot (weekly) and CodeQL run on `main` / PRs. SonarCloud uses Automatic Analysis (`dytsou_pattern`).
+## Optional introspect endpoint
+
+Mount only behind your own auth expectations (handler requires a **delegation** Bearer):
+
+```ts
+import { createIntrospectHandler } from "pattern/hono";
+
+app.post("/pat/introspect", createIntrospectHandler(pattern));
+```
+
+Request body: `{ "token", "method", "path" }`. See [`openapi.yaml`](openapi.yaml) for the HTTP shape.
+
+## Example sketch
+
+A minimal Worker wiring lives in [`examples/hono-worker`](examples/hono-worker).
 
 ## License
-
 
 See [LICENSE](LICENSE) for details.
