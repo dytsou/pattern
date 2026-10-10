@@ -5,7 +5,7 @@ Lightweight **Personal Access Token** auth for Cloudflare Workers: path × metho
 ## Ten-minute Hono path
 
 ```bash
-npm install pattern hono
+pnpm add pattern hono
 ```
 
 ```ts

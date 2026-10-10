@@ -15,19 +15,18 @@
       "import": "./dist/hono/index.js"
     }
   },
-  "files": [
-    "dist",
-    "migrations",
-    "README.md"
-  ],
+  "files": ["dist", "migrations", "README.md", "LICENSE"],
+  "packageManager": "pnpm@12.11.2",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "test:ci": "vitest run --maxWorkers=1",
     "test:watch": "vitest"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "pnpm": ">=12"
   },
   "peerDependencies": {
     "hono": "^4.0.0"

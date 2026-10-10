@@ -1,0 +1,7 @@
+# Single-package project; required for pnpm 12 allowBuilds.
+packages:
+  - .
+
+allowBuilds:
+  esbuild: true
+  "@scarf/scarf": false
