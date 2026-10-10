@@ -46,12 +46,12 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@cloudflare/workers-types": "^4.20251011.0",
-    "@redocly/cli": "2.55.0",
+    "@redocly/cli": "2.60.0",
     "@types/node": "^22.10.0",
     "fast-check": "^4.1.1",
     "hono": "^4.9.0",
     "swagger-ui-dist": "5.33.1",
-    "typescript": "^5.9.0",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   },
   "license": "MIT",
