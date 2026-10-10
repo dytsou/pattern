@@ -1,6 +1,7 @@
 import { decideFromClaims } from "./decide.js";
 import { issueChild } from "./issue.js";
 import {
+  epochAllows,
   isEpochTokenStore,
   MemoryTokenStore,
   type TokenStore,
@@ -92,7 +93,7 @@ export async function createPattern(
       const v = await verifyToken(raw, opts.secret, now);
       if (!v.ok) return { ok: false, reason: v.reason };
       if (isEpochTokenStore(store)) {
-        if (v.claims.epoch !== store.currentEpoch()) {
+        if (!epochAllows(v.claims.epoch, store.currentEpoch())) {
           return { ok: false, reason: "revoked" };
         }
       } else if (await store.isRevoked(v.claims.jti)) {

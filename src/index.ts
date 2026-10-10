@@ -14,6 +14,7 @@ export {
   D1TokenStore,
   EpochTokenStore,
   isEpochTokenStore,
+  epochAllows,
   type TokenStore,
   type TokenRecord,
   type TokenStoreStats,

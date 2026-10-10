@@ -1,5 +1,9 @@
 import { buildDiff, intersectGrants } from "./intersect.js";
-import { isEpochTokenStore, type TokenStore } from "./store/index.js";
+import {
+  epochAllows,
+  isEpochTokenStore,
+  type TokenStore,
+} from "./store/index.js";
 import { newJti, signToken, verifyToken } from "./token.js";
 import type { IssueRequest, IssueResult, TokenClaims } from "./types.js";
 
@@ -18,7 +22,7 @@ export async function issueChild(
     return { ok: false, reason: "not_delegatable" };
   }
   if (isEpochTokenStore(store)) {
-    if (parent.epoch !== store.currentEpoch()) {
+    if (!epochAllows(parent.epoch, store.currentEpoch())) {
       return { ok: false, reason: "revoked" };
     }
   } else if (await store.isRevoked(parent.jti)) {

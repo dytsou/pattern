@@ -1,5 +1,21 @@
 import type { TokenRecord, TokenStore } from "./types.js";
 
+function finiteEpoch(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+/** True when the token's stamped epoch is a finite number matching the store. */
+export function epochAllows(
+  claimsEpoch: unknown,
+  currentEpoch: number,
+): boolean {
+  return (
+    typeof claimsEpoch === "number" &&
+    Number.isFinite(claimsEpoch) &&
+    claimsEpoch === currentEpoch
+  );
+}
+
 /**
  * Ultra-minimal revoke: one generation counter.
  * Mint stamps `claims.epoch`; `revoke` bumps the counter and invalidates every prior token.
@@ -8,14 +24,17 @@ import type { TokenRecord, TokenStore } from "./types.js";
 export class EpochTokenStore implements TokenStore {
   readonly mode = "epoch" as const;
 
-  constructor(public readonly state: { epoch: number } = { epoch: 0 }) {}
+  constructor(public readonly state: { epoch: number } = { epoch: 0 }) {
+    // Fail closed: partial KV hydrates (`{}`) must not leave epoch undefined.
+    this.state.epoch = finiteEpoch(this.state.epoch, 0);
+  }
 
   currentEpoch(): number {
-    return this.state.epoch;
+    return finiteEpoch(this.state.epoch, 0);
   }
 
   bumpEpoch(): number {
-    this.state.epoch += 1;
+    this.state.epoch = this.currentEpoch() + 1;
     return this.state.epoch;
   }
 

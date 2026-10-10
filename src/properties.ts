@@ -4,7 +4,7 @@
  */
 import fc from "fast-check";
 import { grantsAllow } from "./decide.js";
-import { intersectGrants } from "./intersect.js";
+import { grantCoveredBy, intersectGrants } from "./intersect.js";
 import { createPattern } from "./pattern.js";
 import type { Grant, HttpMethod } from "./types.js";
 
@@ -30,7 +30,7 @@ export function propDenyByDefault(numRuns = 100): void {
   );
 }
 
-/** Successful intersect never widens beyond the parent grant set (by method). */
+/** Successful intersect never widens beyond the parent grant set. */
 export function propNoEscalation(numRuns = 100): void {
   fc.assert(
     fc.property(
@@ -39,7 +39,7 @@ export function propNoEscalation(numRuns = 100): void {
       (parent, req) => {
         const r = intersectGrants(parent, req);
         if (!r.ok) return true;
-        return r.grants.every((g) => parent.some((p) => p.method === g.method));
+        return r.grants.every((g) => grantCoveredBy(g, parent));
       },
     ),
     { numRuns },
