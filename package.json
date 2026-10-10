@@ -1,6 +1,6 @@
 {
   "name": "@dytsou/pattern",
-  "version": "1.0.0-beta-2",
+  "version": "1.0.0",
   "description": "Edge PAT auth for Cloudflare Workers — path×method ACL, hierarchical issuance, exact revoke",
   "type": "module",
   "main": "./dist/index.js",

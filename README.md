@@ -1,6 +1,6 @@
 # pattern
 
-Personal Access Token (PAT) auth for Cloudflare Workers: **path × method** allowlists, hierarchical issuance, and exact `jti` revocation.
+Personal Access Token Through Edge-based Rules and Nested Delegation: A Personal Access Token (PAT) auth for Cloudflare Workers: **path × method** allowlists, hierarchical issuance, and exact `jti` revocation.
 
 ## Install
 
