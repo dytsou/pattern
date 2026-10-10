@@ -1,0 +1,198 @@
+openapi: 3.1.0
+info:
+  title: pattern HTTP API
+  version: 0.1.0
+  description: |
+    HTTP contract for Workers that embed `pattern` with the Hono adapter.
+
+    Protected application routes expect `Authorization: Bearer <pat>`.
+    Unauthenticated or unauthorized requests receive JSON `{ "error": "<DenyReason>" }`
+    with HTTP 401 from `patternMiddleware`.
+
+    `POST /pat/introspect` is an optional, auth-gated helper for explaining
+    whether a subject token would be allowed for a hypothetical method and path.
+    Mount it only when needed via `createIntrospectHandler`.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  contact:
+    name: pattern
+servers:
+  - url: /
+    description: Your Worker origin after mounting pattern middleware
+security:
+  - bearerAuth: []
+tags:
+  - name: Protected routes
+    description: Any application route behind patternMiddleware
+  - name: Introspection
+    description: Optional operator-facing decision simulator
+paths:
+  /{path}:
+    parameters:
+      - name: path
+        in: path
+        required: true
+        description: Application path. Access is decided by the token allowlist (method × path pattern).
+        schema:
+          type: string
+    get:
+      tags: [Protected routes]
+      summary: Call a protected route
+      description: |
+        Representative GET behind `patternMiddleware`. Other methods follow the same
+        Bearer + allowlist rules. The handler only runs when the token is valid and
+        the joint (method, path) grant allows the request.
+      operationId: protectedGet
+      responses:
+        "200":
+          description: Application success response (shape defined by your handler).
+        "401":
+          description: Missing, invalid, expired, revoked, or out-of-scope token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+              examples:
+                missing:
+                  value: { error: missing_token }
+                pathDenied:
+                  value: { error: path_not_allowed }
+  /pat/introspect:
+    post:
+      tags: [Introspection]
+      summary: Explain a hypothetical authorization decision
+      description: |
+        Requires a **delegation** Bearer token. Returns whether `token` would be
+        allowed for `method` + `path`, plus a reduced claims view when the subject
+        token verifies.
+      operationId: introspect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntrospectRequest"
+            example:
+              token: pat.<payload>.<sig>
+              method: GET
+              path: /docs/hello
+      responses:
+        "200":
+          description: Introspection completed (including subject-token verify failures).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntrospectResponse"
+        "400":
+          description: Missing token, method, or path in the body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+              example:
+                error: token, method, path required
+        "401":
+          description: Caller Bearer missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+        "403":
+          description: Caller is not a delegation token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+              example:
+                error: not_delegatable
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PAT
+      description: HMAC-signed pattern capability token (`pat.<payload>.<sig>`).
+  schemas:
+    DenyReason:
+      type: string
+      enum:
+        - missing_token
+        - invalid_token
+        - expired
+        - revoked
+        - method_not_allowed
+        - path_not_allowed
+        - not_delegatable
+    AuthError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: DenyReason value, or a free-form message such as a validation hint.
+      additionalProperties: false
+    HttpMethod:
+      type: string
+      enum: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+    Grant:
+      type: object
+      required: [method, path]
+      properties:
+        method:
+          $ref: "#/components/schemas/HttpMethod"
+        path:
+          type: string
+          description: Path pattern (`*`, `**`, or exact).
+          examples: ["/docs/*", "/api/**"]
+      additionalProperties: false
+    TokenKind:
+      type: string
+      enum: [access, delegation]
+    IntrospectRequest:
+      type: object
+      required: [token, method, path]
+      properties:
+        token:
+          type: string
+          description: Subject PAT to evaluate.
+        method:
+          $ref: "#/components/schemas/HttpMethod"
+        path:
+          type: string
+          description: Absolute request path to test.
+      additionalProperties: false
+    IntrospectClaims:
+      type: object
+      required: [jti, kind, grants, exp, depth]
+      properties:
+        jti:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/TokenKind"
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grant"
+        exp:
+          type: integer
+          description: Unix expiry in seconds.
+        depth:
+          type: integer
+          minimum: 0
+        parentJti:
+          type: string
+          format: uuid
+      additionalProperties: false
+    IntrospectResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+        reason:
+          $ref: "#/components/schemas/DenyReason"
+        claims:
+          $ref: "#/components/schemas/IntrospectClaims"
+      additionalProperties: false

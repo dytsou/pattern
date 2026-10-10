@@ -80,6 +80,16 @@ const pattern = await createPattern({
 });
 ```
 
+## API page
+
+OpenAPI contract: [`openapi.yaml`](openapi.yaml).
+
+```bash
+pnpm run api:lint    # Redocly lint
+pnpm run api:build   # Swagger UI → dist/api/
+pnpm run api:preview # serve dist/api on :4173
+```
+
 ## License
 
 MIT

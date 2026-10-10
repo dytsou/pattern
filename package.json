@@ -19,13 +19,17 @@
   "packageManager": "pnpm@12.11.2",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "build:all": "pnpm run build && pnpm run api:lint && pnpm run api:build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "test": "vitest run",
     "test:ci": "vitest run --maxWorkers=1",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "api:lint": "redocly lint openapi.yaml",
+    "api:build": "node scripts/build-api-docs.mjs",
+    "api:preview": "pnpm run api:build && python3 -m http.server 4173 --directory dist/api"
   },
   "engines": {
     "node": ">=20",
@@ -42,9 +46,11 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@cloudflare/workers-types": "^4.20251011.0",
+    "@redocly/cli": "2.55.0",
     "@types/node": "^22.10.0",
     "fast-check": "^4.1.1",
     "hono": "^4.9.0",
+    "swagger-ui-dist": "5.33.1",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
   },
