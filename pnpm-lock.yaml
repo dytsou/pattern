@@ -198,8 +198,8 @@ importers:
         specifier: ^5.20261007.1
         version: 5.20261007.1
       '@redocly/cli':
-        specifier: 2.60.0
-        version: 2.60.0
+        specifier: 2.62.1
+        version: 2.62.1
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -454,8 +454,8 @@ packages:
     os: [linux]
     libc: [glibc]
 
-  '@redocly/cli@2.60.0':
-    resolution: {integrity: sha512-/xzlR+FGbo2pblWlgIZ92nrLwHgnpE6Ri8kCQm+LaizgijdwMYetly/pv4vdeZ4Hv8S6Zdw/+2fRBlhucbC9qw==}
+  '@redocly/cli@2.62.1':
+    resolution: {integrity: sha512-KdhRvUGkaom19U83mlRJE10T4svPf8EHCn9AGLgIHxqHgVTyjQMLyrOoIU46pV6Gtvbe3t035ckIDVYeqXC4VQ==}
     engines: {node: '>=22.12.0 || >=20.19.0 <21.0.0', npm: '>=10'}
     hasBin: true
 
@@ -1067,7 +1067,7 @@ snapshots:
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
-  '@redocly/cli@2.60.0': {}
+  '@redocly/cli@2.62.1': {}
 
   '@rollup/rollup-android-arm-eabi@4.64.1':
     optional: true
