@@ -1,4 +1,4 @@
-name: Publish package
+name: Publish to npmjs & GitHub Packages
 
 on:
   push:
@@ -8,8 +8,6 @@ on:
       - "package.json"
       - "src/**"
       - "migrations/**"
-      - ".github/scripts/publish/**"
-      - ".github/workflows/publish.yml"
   release:
     types: [created]
   workflow_dispatch:
@@ -26,11 +24,17 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
+      # dist/ is published; build before registry actions (they use install-deps: false).
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
         with:
@@ -39,97 +43,50 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
-      - name: Read package metadata
-        id: pkg
-        run: bash .github/scripts/publish/read-package-meta.sh
-
-      - name: Check if version exists on npmjs
-        id: check-npmjs
-        env:
-          PACKAGE_NAME: ${{ steps.pkg.outputs.name }}
-          VERSION: ${{ steps.pkg.outputs.version }}
-          REGISTRY: https://registry.npmjs.org
-        run: bash .github/scripts/publish/check-registry-version.sh
-        continue-on-error: true
-
-      - name: Check if version exists on GitHub Packages
-        id: check-github
-        env:
-          PACKAGE_NAME: ${{ steps.pkg.outputs.name }}
-          VERSION: ${{ steps.pkg.outputs.version }}
-          SCOPE: ${{ steps.pkg.outputs.scope }}
-          REGISTRY: https://npm.pkg.github.com
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash .github/scripts/publish/check-registry-version.sh
-        continue-on-error: true
-
       - name: Install dependencies
-        if: steps.check-npmjs.outputs.exists == 'false' || steps.check-github.outputs.exists == 'false'
         run: pnpm install --frozen-lockfile
 
       - name: Build package
-        if: steps.check-npmjs.outputs.exists == 'false' || steps.check-github.outputs.exists == 'false'
         run: pnpm run build
 
-      - name: Verify package
-        if: steps.check-npmjs.outputs.exists == 'false' || steps.check-github.outputs.exists == 'false'
-        run: |
-          pnpm pack
-          rm -f ./*.tgz || true
-
       - name: Publish to npmjs
-        if: steps.check-npmjs.outputs.exists == 'false'
-        id: publish-npmjs
-        env:
-          PACKAGE_NAME: ${{ steps.pkg.outputs.name }}
-          VERSION: ${{ steps.pkg.outputs.version }}
-          SCOPE: ${{ steps.pkg.outputs.scope }}
-          REGISTRY: https://registry.npmjs.org
-          ACCESS: public
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: bash .github/scripts/publish/publish-to-registry.sh
-        continue-on-error: true
+        id: npmjs
+        uses: dytsou/release/npm-publish@1bc9897f277fb68b136ff1f0fdd0191be56568ea # v1.3.0 (@v1)
+        with:
+          npm-token: ${{ secrets.NPM_TOKEN }}
+          install-deps: "false"
 
       - name: Publish to GitHub Packages
-        if: steps.check-github.outputs.exists == 'false'
-        id: publish-github
-        env:
-          PACKAGE_NAME: ${{ steps.pkg.outputs.name }}
-          VERSION: ${{ steps.pkg.outputs.version }}
-          SCOPE: ${{ steps.pkg.outputs.scope }}
-          REGISTRY: https://npm.pkg.github.com
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash .github/scripts/publish/publish-to-registry.sh
-        continue-on-error: true
-
-      - name: Check if release should be created
-        id: should-create-release
-        env:
-          NPMJS_EXISTS: ${{ steps.check-npmjs.outputs.exists }}
-          NPMJS_OUTCOME: ${{ steps.publish-npmjs.outcome }}
-          GITHUB_EXISTS: ${{ steps.check-github.outputs.exists }}
-          GITHUB_OUTCOME: ${{ steps.publish-github.outcome }}
-        run: bash .github/scripts/publish/should-create-release.sh
-
-      - name: Create GitHub Release
-        if: steps.should-create-release.outputs.should_create == 'true'
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        id: ghpkg
+        uses: dytsou/release/github-packages@1bc9897f277fb68b136ff1f0fdd0191be56568ea # v1.3.0 (@v1)
         with:
-          tag_name: v${{ steps.pkg.outputs.version }}
-          name: v${{ steps.pkg.outputs.version }}
-          prerelease: ${{ contains(steps.pkg.outputs.version, 'beta') || contains(steps.pkg.outputs.version, 'alpha') || contains(steps.pkg.outputs.version, 'rc') }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          install-deps: "false"
+          verify-pack: "false"
+
+      - name: GitHub Release
+        if:
+          steps.npmjs.outputs.published == 'true' ||
+          steps.ghpkg.outputs.published == 'true'
+        uses: dytsou/release/github@1bc9897f277fb68b136ff1f0fdd0191be56568ea # v1.3.0 (@v1)
+        with:
+          from-package-json: "true"
+          move-major-tag: "false"
           body: |
-            ## ${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }}
+            ## ${{ steps.npmjs.outputs.name }}@${{ steps.npmjs.outputs.version }}
 
-            **Published to:**
+            **Published to multiple registries:**
 
-            - **npmjs.com**: https://www.npmjs.com/package/${{ steps.pkg.outputs.name }}
+            - **npmjs.com**: https://www.npmjs.com/package/${{ steps.npmjs.outputs.name }}
+
             - **GitHub Packages**: https://github.com/${{ github.repository }}/packages
+
+            *Note: If a registry already had this version, it was skipped. Only missing registries were published.*
 
             ### Install package
 
             ```bash
-            pnpm add ${{ steps.pkg.outputs.name }}
+            pnpm add ${{ steps.npmjs.outputs.name }}
             ```
 
             ### Install agent skill
@@ -137,16 +94,25 @@ jobs:
             ```bash
             npx skills add ${{ github.repository }}
             ```
-          generate_release_notes: true
-          draft: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish summary
         if: always()
-        env:
-          NPMJS_EXISTS: ${{ steps.check-npmjs.outputs.exists }}
-          NPMJS_OUTCOME: ${{ steps.publish-npmjs.outcome }}
-          GITHUB_EXISTS: ${{ steps.check-github.outputs.exists }}
-          GITHUB_OUTCOME: ${{ steps.publish-github.outcome }}
-        run: bash .github/scripts/publish/write-summary.sh
+        run: |
+          echo "## Publish Summary"
+          echo "### npmjs"
+          if [ "${{ steps.npmjs.outputs.skipped }}" == "true" ]; then
+            echo "Skipped - version already exists"
+          elif [ "${{ steps.npmjs.outputs.published }}" == "true" ]; then
+            echo "Published successfully"
+          else
+            echo "Not published"
+          fi
+          echo ""
+          echo "### GitHub Packages"
+          if [ "${{ steps.ghpkg.outputs.skipped }}" == "true" ]; then
+            echo "Skipped - version already exists"
+          elif [ "${{ steps.ghpkg.outputs.published }}" == "true" ]; then
+            echo "Published successfully"
+          else
+            echo "Not published"
+          fi
