@@ -196,7 +196,7 @@ importers:
         version: 2.6.8
       '@cloudflare/workers-types':
         specifier: ^5.20261007.1
-        version: 5.20261110.1
+        version: 5.20261117.1
       '@redocly/cli':
         specifier: 2.79.0
         version: 2.79.0
@@ -290,8 +290,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cloudflare/workers-types@5.20261110.1':
-    resolution: {integrity: sha512-XOr3TDQ2sNDiP9zoZtdwYVhuLZ3aFY+G+G4iSeNO9p/HDSveZJpyCbUtmpEElaClLBe9hIzfN26qd0i/S7ksPg==}
+  '@cloudflare/workers-types@5.20261117.1':
+    resolution: {integrity: sha512-0Qg3kAn8DPRQLaT8ZkqCm6+2/ctc61zdWZqN/1JtlrXV+Db1fNwnjHBLz+/GB/yX+/JgdDAFs+fr8vYyC0w9aw==}
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -995,7 +995,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.6.8':
     optional: true
 
-  '@cloudflare/workers-types@5.20261110.1': {}
+  '@cloudflare/workers-types@5.20261117.1': {}
 
   '@esbuild/aix-ppc64@0.28.2':
     optional: true
