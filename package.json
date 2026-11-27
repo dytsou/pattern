@@ -39,7 +39,7 @@
   "bugs": {
     "url": "https://github.com/dytsou/pattern/issues"
   },
-  "packageManager": "pnpm@12.11.2",
+  "packageManager": "pnpm@12.20.0",
   "scripts": {
     "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
     "build": "pnpm run clean && tsc -p tsconfig.build.json",
